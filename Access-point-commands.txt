@@ -1,0 +1,69 @@
+#installs dnsmasq which provides DHCP services to connected devices
+#installs hostapd which creates the rb pi into a access point 
+sudo apt install dnsmasq hostapd
+
+#opens the DHCP client configuration file to make changes on how it manages network interfaces
+sudo nano /etc/dhcpcd.conf
+
+#insides the file write:
+#wireless connection is needed
+interface wlan0
+#assigns a permanent IP address to the rb pi's wifi interface
+static ip_address=192.168.4.1/24
+#disables wpa_supplicant because it would interfere with the access point setup
+nohook wpa_supplicant
+
+#makes a backup for the dnsmasq configuration file incase something goes wrong
+sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
+
+#opens the configuration file for dnsmasq and apply settings for how  to control the dhcp server and dns service
+sudo nano /etc/dnsmasq.conf
+
+#inside the file write:
+interface=wlan0
+dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+
+#opens the hostapd configuration file to set up the access point to broadcast the chosen SSID using WPA2 encryption
+sudo nano /etc/hostapd/hostapd.conf
+
+interface=wlan0
+#nl80211 is a standardized Linux kernel interface that provides a way to communicate with wireless devices
+driver=nl80211
+ssid=PJ's Network
+#configures the access point to operate in the 2.4 GHz frequency band using the 802.11g standard
+hw_mode=g
+#sets the channel on which the access point will broadcast
+channel=6
+wmm_enabled=0
+#points that there should be no MAC address filtering
+macaddr_acl=0
+#specifies the authentication algorithm that would be used (in this case 1 aka WPA)
+auth_algs=1
+#determines if the SSID will be available to the devices scanning for wifi
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=raspberry
+#shows which encryption type WPA2 will use
+rsn_pairwise=CCMP
+
+sudo nano /etc/default/hostapd
+
+#updates the line with DAEMON_CONF, basically telling the hostapd to use the configuration /etc/hostapd/hostapd.conf
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
+
+#opens the configuration file used to modify kernel parameters at runtime
+sudo nano /etc/sysctl.conf
+
+#uncomment this line: 
+net.ipv4.ip_forward=1
+
+#ensures that the change that was just made doesnt require reboot of the rb pi
+sudo sysctl -p
+
+
+
+
+
+
+
+
