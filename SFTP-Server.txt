@@ -3,32 +3,44 @@ sudo nano /etc/ssh/sshd_config
 
 #inside the file append:
 Match Group sftpusers
-#jail users in this group to the /home dierctory
-    ChrootDirectory /home
+#jail users in this group to the /home directory
+    ChrootDirectory /home/shared
 #force users to use SFTP for security reasons
     ForceCommand internal-sftp
     AllowTcpForwarding no
 
+#create the directory that will be used as a chroot environment for the sftpusers, allowing them to have a specific location to access and store files without seeing other directories under /home
+sudo mkdir /home/shared
+
 #create the new group
 sudo groupadd sftpusers 
 
-#add a new user 'user1' to the system
+#add a new user1 to the system
 sudo adduser user1 
 
-#add 'user1' to the 'sftpusers' group.
+#add user1 to the sftpusers group.
 sudo usermod -aG sftpusers user1 
 
-#add a new user 'user2' to the system
+#add a new user user2 to the system
 sudo adduser user2
 
-#add 'user2' to the 'sftpusers' group.
+#add user2 to the sftpusers group.
 sudo usermod -aG sftpusers user2
 
-#specifies that the owner is 'root' and the group thats assigned to the directory is 'sftpusers'
+#specifies that the owner is root and the group thats assigned to the directory is sftpusers
 sudo chown root:sftpusers /home/shared 
 
-#set permissions for the directory, specifically 770 means that the owner and group have access but other dont
-sudo chmod 770 /home/shared 
+#set permissions for the directory, specifically 755 means that the owner has access to write, read and execute while others have just read/execute permissions
+sudo chmod 755 /home/shared 
+
+#makes the directory where sftpusers would have access to write, read and execute files
+sudo mkdir /home/shared/files
+
+#specifies that the owner is root and the group thats assigned to the directory is sftpusers
+sudo chown root:sftpusers /home/shared/files
+
+#set permissions for the directory, specifically 770 means that the owner and group has access to write, read and execute while others dont have permission for anything
+sudo chmod 770 /home/shared/files 
 
 #restart the SSH service purposefully to save the changes
 sudo systemctl restart ssh 
